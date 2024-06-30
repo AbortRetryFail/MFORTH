@@ -3293,7 +3293,7 @@ NFATOLFA:   POP     H
 ; : NUMBER? ( ca u -- ca u 0 | n -1 )
 ;   SIGN? >R  2DUP 0 0 2SWAP  >NUMBER  ( ca u ud ca2 u2)
 ;   IF DROP 2DROP  R> DROP  0 ELSE
-;      DROP 2NIP DROP  >R ?NEGATE  -1 THEN ;
+;      DROP 2NIP DROP R> ?NEGATE  -1 THEN ;
 
             LINKTO(NFATOLFA,0,7,'?',"REBMUN")
 NUMBERQ:    JMP     ENTER

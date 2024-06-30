@@ -39,11 +39,17 @@
 ; its use may corrupt the transient region identified by #>.
 ;
 ; ---
-; .S ( --)   DEPTH BEGIN ?DUP WHILE DUP PICK . 1- REPEAT ;
+; : .S ( --)
+; DEPTH DUP 0 < IF ." STACK UNDERFLOW " .
+; ELSE BEGIN ?DUP WHILE DUP PICK . 1- REPEAT
+; THEN ;
 
             LINKTO(LINK_TOOLS,0,2,'S',".")
 DOTS:       JMP     ENTER
-            .WORD   DEPTH
+            .WORD   DEPTH,DUP,ZERO,LESSTHAN,zbranch,_dots1
+            .WORD   PSQUOTE,16
+            .BYTE   "Stack underflow "
+            .WORD   TYPE,DOT,branch,_dots2
 _dots1:     .WORD   QDUP,zbranch,_dots2,DUP,PICK,DOT,ONEMINUS,branch,_dots1
 _dots2:     .WORD   EXIT
 
