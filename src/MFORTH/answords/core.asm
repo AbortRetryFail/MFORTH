@@ -3286,22 +3286,28 @@ NFATOLFA:   POP     H
 ; NUMBER? [MFORTH] "number-question" ( c-addr u -- c-addr u 0 | n -1 )
 ;
 ; Attempt to convert a string at c-addr of length u into digits, using
-; the radix in BASE.  The number and -1 is returned if the conversion
-; was successful, otherwise 0 is returned.
+; the radix in BASE.  The number and 1 is returned if the conversion
+; was successful, 2 is returned if the number is double length,
+; otherwise 0 is returned.
 ;
 ; ---
 ; : NUMBER? ( ca u -- ca u 0 | n -1 )
 ;   SIGN? >R  2DUP 0 0 2SWAP  >NUMBER  ( ca u ud ca2 u2)
 ;   IF DROP 2DROP  R> DROP  0 ELSE
-;      DROP 2NIP DROP R> ?NEGATE  -1 THEN ;
+;      DROP 2NIP DUP
+;      IF R> ?DNEGATE 2 ELSE
+;         DROP >R ?NEGATE 1 THEN
+;   THEN ;
 
             LINKTO(NFATOLFA,0,7,'?',"REBMUN")
 NUMBERQ:    JMP     ENTER
             .WORD   SIGNQ,TOR,TWODUP,ZERO,ZERO,TWOSWAP
             .WORD       TONUMBER,zbranch,_numberq1
-            .WORD   DROP,TWODROP,RFROM,DROP,ZERO,branch,_numberq2
-_numberq1:  .WORD   DROP,TWONIP,DROP,RFROM,QNEGATE,LIT,0FFFFh
-_numberq2:  .WORD   EXIT
+            .WORD   DROP,TWODROP,RFROM,DROP,ZERO,branch,_numberq3
+_numberq1:  .WORD   DROP,TWONIP,DUP,zbranch,_numberq2
+			.WORD	RFROM,QDNEGATE,LIT,2,branch,_numberq3
+_numberq2:	.WORD	DROP,RFROM,QNEGATE,LIT,1
+_numberq3:  .WORD   EXIT
 
 
 ; ----------------------------------------------------------------------
