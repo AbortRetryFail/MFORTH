@@ -3200,8 +3200,11 @@ INITICBS:   JMP     ENTER
 ;           1+  STATE @ 0=  OR ( xt 2=imm | xt 0=interp)
 ;           IF EXECUTE ELSE COMPILE, THEN
 ;       ELSE
-;           NUMBER? IF
-;               STATE @ IF POSTPONE LITERAL THEN
+;           NUMBER? ?DUP IF
+;             STATE @ IF 1+
+;               IF SWAP POSTPONE LITERAL THEN
+;               POSTPONE LITERAL
+;             ELSE DROP
 ;               -- Interpreting; leave number on stack.
 ;           ELSE
 ;               TYPE  SPACE  [CHAR] ? EMIT  CR  ABORT
@@ -3212,17 +3215,20 @@ INITICBS:   JMP     ENTER
             LINKTO(INITICBS,0,9,'T',"ERPRETNI")
 INTERPRET:  JMP     ENTER
             .WORD   ZERO,TOIN,STORE
-_interpret1:.WORD   PARSEWORD,DUP,zbranch,_interpret6
+_interpret1:.WORD   PARSEWORD,DUP,zbranch,_interpret8
             .WORD   PFIND,QDUP,zbranch,_interpret3
             .WORD   ONEPLUS,STATE,FETCH,ZEROEQUALS,OR,zbranch,_interpret2
-            .WORD   EXECUTE,branch,_interpret5
-_interpret2:.WORD   COMPILECOMMA,branch,_interpret5
-_interpret3:.WORD   NUMBERQ,zbranch,_interpret4
+            .WORD   EXECUTE,branch,_interpret7
+_interpret2:.WORD   COMPILECOMMA,branch,_interpret7
+_interpret3:.WORD   NUMBERQ,QDUP,zbranch,_interpret6
             .WORD   STATE,FETCH,zbranch,_interpret5
-            .WORD   LITERAL,branch,_interpret5
-_interpret4:.WORD   TYPE,SPACE,LIT,'?',EMIT,CR,ABORT
-_interpret5:.WORD   branch,_interpret1
-_interpret6:.WORD   TWODROP
+			.WORD   ONEPLUS,zbranch,_interpret4
+			.WORD   SWAP,LITERAL
+_interpret4:.WORD   LITERAL,branch,_interpret7
+_interpret5:.WORD   DROP,branch,_interpret7
+_interpret6:.WORD   TYPE,SPACE,LIT,'?',EMIT,CR,ABORT
+_interpret7:.WORD   branch,_interpret1
+_interpret8:.WORD   TWODROP
             .WORD   EXIT
 
 
@@ -3294,9 +3300,9 @@ NFATOLFA:   POP     H
 ; : NUMBER? ( ca u -- ca u 0 | n -1 )
 ;   SIGN? >R  2DUP 0 0 2SWAP  >NUMBER  ( ca u ud ca2 u2)
 ;   IF DROP 2DROP  R> DROP  0 ELSE
-;      DROP 2NIP DUP
-;      IF R> ?DNEGATE 2 ELSE
-;         DROP >R ?NEGATE 1 THEN
+;      DROP 2NIP ?DUP
+;      IF R> ?DNEGATE -2 ELSE
+;         >R ?NEGATE -1 THEN
 ;   THEN ;
 
             LINKTO(NFATOLFA,0,7,'?',"REBMUN")
@@ -3304,9 +3310,9 @@ NUMBERQ:    JMP     ENTER
             .WORD   SIGNQ,TOR,TWODUP,ZERO,ZERO,TWOSWAP
             .WORD       TONUMBER,zbranch,_numberq1
             .WORD   DROP,TWODROP,RFROM,DROP,ZERO,branch,_numberq3
-_numberq1:  .WORD   DROP,TWONIP,DUP,zbranch,_numberq2
-			.WORD	RFROM,QDNEGATE,LIT,2,branch,_numberq3
-_numberq2:	.WORD	DROP,RFROM,QNEGATE,LIT,1
+_numberq1:  .WORD   DROP,TWONIP,QDUP,zbranch,_numberq2
+			.WORD	RFROM,QDNEGATE,LIT,0FFFEh,branch,_numberq3
+_numberq2:	.WORD	RFROM,QNEGATE,LIT,0FFFFh
 _numberq3:  .WORD   EXIT
 
 
