@@ -30,30 +30,11 @@
 ; ======================================================================
 
 ; ----------------------------------------------------------------------
-; D. [DOUBLE] 8.6.1.0160 "d-dot" ( d -- )
-;
-; Display d in free field format.
-;
-; ---
-; : D. ( d -- )
-;   BASE @ 10 <>  IF UD. EXIT THEN
-;   2DUP D0< >R DABS <# #S R> SIGN #> TYPE SPACE ;
-
-            LINKTO(LINK_DOUBLE,0,2,'.',"D")
-DDOT:       JMP     ENTER
-            .WORD   BASE,FETCH,LIT,10,NOTEQUALS,zbranch,_ddot1,UDDOT,EXIT
-_ddot1:     .WORD   TWODUP,DZEROLESS,TOR
-            .WORD   DABS,LESSNUMSIGN,NUMSIGNS,RFROM,SIGN,NUMSIGNGRTR
-            .WORD   TYPE,SPACE
-            .WORD   EXIT
-
-
-; ----------------------------------------------------------------------
 ; D- [DOUBLE] 8.6.1.1050 "d-minus" ( d1|ud1 d2|ud2 -- d3|ud3 )
 ;
 ; Subtract d2|ud2 from d1|ud1, giving the difference d3|ud3.
 
-            LINKTO(DDOT,0,2,'-',"D")
+            LINKTO(LINK_DOUBLE,0,2,'-',"D")
 DMINUS:     SAVEDE
             LDES    0           ; Get the address of d2
             XCHG                ; ..and move that address into HL
@@ -84,6 +65,25 @@ DMINUS:     SAVEDE
 
 
 ; ----------------------------------------------------------------------
+; D. [DOUBLE] 8.6.1.1060 "d-dot" ( d -- )
+;
+; Display d in free field format.
+;
+; ---
+; : D. ( d -- )
+;   BASE @ 10 <>  IF UD. EXIT THEN
+;   2DUP D0< >R DABS <# #S R> SIGN #> TYPE SPACE ;
+
+            LINKTO(DMINUS,0,2,'.',"D")
+DDOT:       JMP     ENTER
+            .WORD   BASE,FETCH,LIT,10,NOTEQUALS,zbranch,_ddot1,UDDOT,EXIT
+_ddot1:     .WORD   TWODUP,DZEROLESS,TOR
+            .WORD   DABS,LESSNUMSIGN,NUMSIGNS,RFROM,SIGN,NUMSIGNGRTR
+            .WORD   TYPE,SPACE
+            .WORD   EXIT
+
+
+; ----------------------------------------------------------------------
 ; D0< [DOUBLE] 8.6.1.1075 "d-zero-less" ( d -- flag )
 ;
 ; flag is true if and only if d is less than zero.
@@ -91,7 +91,7 @@ DMINUS:     SAVEDE
 ; ---
 ; : D0< ( d -- flag)   SWAP DROP 0< ;
 
-            LINKTO(DMINUS,0,3,'<',"0D")
+            LINKTO(DDOT,0,3,'<',"0D")
 DZEROLESS:  JMP     ENTER
             .WORD   SWAP,DROP,ZEROLESS,EXIT
 
