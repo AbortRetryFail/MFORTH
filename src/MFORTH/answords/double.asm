@@ -30,11 +30,45 @@
 ; ======================================================================
 
 ; ----------------------------------------------------------------------
+; D+ [DOUBLE] 8.6.1.1040 "d-plus" ( d1|ud1 d2|ud2 -- d3|ud3 )
+;
+; Add d1|ud1 and d2|ud2, giving the sum d3|ud3.
+
+			LINKTO(LINK_DOUBLE,0,2,'+',"D")
+DPLUS:		SAVEDE
+			LDES	0			; Get the address of d2
+			XCHG				; ..and move that address into HL.
+			LDES	4			; Get the address of d1 into DE.
+			ANA		A			; Clear the carry flag.
+			LDAX	D			; Get d1ll into A,
+			ADD		M			; ..add d2ll to d1ll,
+			STAX	D			; ..and put the result into d1ll.
+            INX     D           ; Increment to d1lh.
+            INX     H           ; Increment to d2lh.
+            LDAX    D           ; Get d1lh into A,
+            ADC     M           ; ..add d2lh to d1l,
+            STAX    D           ; ..and put the result into d1lh.
+            INX     D           ; Increment to d1hl.
+            INX     H           ; Increment to d2hl.
+            LDAX    D           ; Get d1hl into A,
+            ADC     M           ; ..add d2hl to d1hl,
+            STAX    D           ; ..and put the result into d1hl.
+            INX     D           ; Increment to d1hh.
+            INX     H           ; Increment to d2hh.
+            LDAX    D           ; Get d1hh into A,
+            ADC     M           ; ..add d2hh to d1hh,
+            STAX    D           ; ..and put the result into d1hh.
+            POP     H           ; Pop d2l.
+            POP     H           ; Pop d2h.
+            RESTOREDE
+            NEXT
+
+; ----------------------------------------------------------------------
 ; D- [DOUBLE] 8.6.1.1050 "d-minus" ( d1|ud1 d2|ud2 -- d3|ud3 )
 ;
 ; Subtract d2|ud2 from d1|ud1, giving the difference d3|ud3.
 
-            LINKTO(LINK_DOUBLE,0,2,'-',"D")
+            LINKTO(DPLUS,0,2,'-',"D")
 DMINUS:     SAVEDE
             LDES    0           ; Get the address of d2
             XCHG                ; ..and move that address into HL
