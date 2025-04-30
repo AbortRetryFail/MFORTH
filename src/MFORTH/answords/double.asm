@@ -169,28 +169,22 @@ DABS:       JMP     ENTER
 ; d2 is the negation of d1.
 ;
 ; ---
-; : DNEGATE ( d1 -- d2)   INVERT SWAP INVERT SWAP 1 M+ ;
+; : DNEGATE ( d1 -- d2)   INVERT SWAP INVERT SWAP 1 UM+ ;
 
             LINKTO(DABS,0,7,'E',"TAGEND")
 DNEGATE:    JMP     ENTER
-            .WORD   INVERT,SWAP,INVERT,SWAP,ONE,MPLUS,EXIT
+            .WORD   INVERT,SWAP,INVERT,SWAP,ONE,UMPLUS,EXIT
 
 
 ; ----------------------------------------------------------------------
 ; M+ [DOUBLE] 8.6.1.1830 "m-plus" ( d1|ud1 n -- d2|ud2 )
 ;
 ; Add n to d1|ud1, giving the sum d2|ud2.
+;
+; ---
+; : M+ ( d1|ud1 n -- d2|ud2 ) S>D D+ ;
 
             LINKTO(DNEGATE,0,2,'+',"M")
 LAST_DOUBLE:
-MPLUS:      SAVEDE
-            POP     D           ; Pop n into DE.
-            POP     H           ; Pop the high 16-bits of d1|ud1 into HL
-            XTHL                ; ..and swap that value with the low 16-bits.
-            DAD     D           ; Add n to the low 16-bits of d1|ud1.
-            XTHL                ; Swap the high and low 16-bits again.
-            JNC     _mplusDONE  ; We're done if there was no carry.
-            INX     H           ; Increment the high 16-bits on carry.
-_mplusDONE: PUSH    H           ; Push the high 16-bits back onto the stack.
-            RESTOREDE
-            NEXT
+MPLUS:      JMP		ENTER
+			.WORD	STOD,DPLUS,EXIT

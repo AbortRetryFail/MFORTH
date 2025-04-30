@@ -757,7 +757,7 @@ TONUMBER:   JMP     ENTER
 _tonumber1: .WORD   BQUES,zbranch,_tonumber3
             .WORD   BFETCH,DIGITQ,ZEROEQUALS,zbranch,_tonumber2
             .WORD   B,BNUMBER,EXIT
-_tonumber2: .WORD   TOR,BASE,FETCH,UDSTAR,RFROM,MPLUS,BPLUS,branch,_tonumber1
+_tonumber2: .WORD   TOR,BASE,FETCH,UDSTAR,RFROM,UMPLUS,BPLUS,branch,_tonumber1
 _tonumber3: .WORD   B,BNUMBER
             .WORD   EXIT
 
@@ -3418,8 +3418,26 @@ UDDOT:      JMP     ENTER
 ; UD/MOD ( ud1 u1 -- n ud2 )   >R 0 R@ UM/MOD  R> SWAP >R UM/MOD R> ;
 
             LINKTO(UDDOT,0,6,'D',"OM/DU")
-LAST_CORE:
 UDSLASHMOD: JMP     ENTER
             .WORD   TOR,ZERO,RFETCH,UMSLASHMOD
             .WORD   RFROM,SWAP,TOR,UMSLASHMOD,RFROM
             .WORD   EXIT
+
+; ----------------------------------------------------------------------
+; UM+ [MFORTH] "u-m-plus" ( d1|ud1 u -- d2|ud2 )
+;
+; Add u to d1|ud1, giving the sum d2|ud2.
+
+            LINKTO(UDSLASHMOD,0,3,'+',"MU")
+LAST_CORE:
+UMPLUS:     SAVEDE
+            POP     D           ; Pop n into DE.
+            POP     H           ; Pop the high 16-bits of d1|ud1 into HL
+            XTHL                ; ..and swap that value with the low 16-bits.
+            DAD     D           ; Add n to the low 16-bits of d1|ud1.
+            XTHL                ; Swap the high and low 16-bits again.
+            JNC     _umplusDONE ; We're done if there was no carry.
+            INX     H           ; Increment the high 16-bits on carry.
+_umplusDONE:PUSH    H           ; Push the high 16-bits back onto the stack.
+            RESTOREDE
+            NEXT
