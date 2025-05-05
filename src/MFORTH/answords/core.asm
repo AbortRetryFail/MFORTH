@@ -3297,23 +3297,27 @@ NFATOLFA:   POP     H
 ; otherwise 0 is returned.
 ;
 ; ---
-; : NUMBER? ( ca u -- ca u 0 | n -1 )
-;   SIGN? >R  2DUP 0 0 2SWAP  >NUMBER  ( ca u ud ca2 u2)
-;   IF DROP 2DROP  R> DROP  0 ELSE
-;      DROP 2NIP ?DUP
-;      IF R> ?DNEGATE -2 ELSE
-;         R> ?NEGATE -1 THEN
-;   THEN ;
+; : NUMBER? ( ca u -- ca u 0 | n -1 | dn -2 )
+;   SIGN? >R 2DUP 0 0 2SWAP >NUMBER
+;   DUP 0 = IF 2DROP 2NIP ?DUP
+;       IF R> ?DNEGATE -2 ELSE
+;          R> ?NEGATE -1 THEN
+;   1 = SWAP C@ [CHAR] . = AND
+;   IF 2NIP R> ?DNEGATE -2
+;   ELSE 2DROP R> DROP 0
+;   THEN THEN ;
 
             LINKTO(NFATOLFA,0,7,'?',"REBMUN")
 NUMBERQ:    JMP     ENTER
-            .WORD   SIGNQ,TOR,TWODUP,ZERO,ZERO,TWOSWAP
-            .WORD       TONUMBER,zbranch,_numberq1
-            .WORD   DROP,TWODROP,RFROM,DROP,ZERO,branch,_numberq3
-_numberq1:  .WORD   DROP,TWONIP,QDUP,zbranch,_numberq2
-			.WORD	RFROM,QDNEGATE,LIT,0FFFEh,branch,_numberq3
-_numberq2:	.WORD	RFROM,QNEGATE,LIT,0FFFFh
-_numberq3:  .WORD   EXIT
+            .WORD   SIGNQ,TOR,TWODUP,ZERO,ZERO,TWOSWAP,TONUMBER
+			.WORD   DUP,ZERO,EQUALS,zbranch,_numberq2
+			.WORD   TWODROP,TWONIP,QDUP,zbranch,_numberq1
+			.WORD	RFROM,QNEGATE,LIT,0FFFFh,branch,_numberq4
+_numberq2:	.WORD	ONE,EQUALS,SWAP,CFETCH,LIT,02Eh,EQUALS,AND
+			.WORD	zbranch,_numberq3,TWONIP
+_numberq1:  .WORD	RFROM,QDNEGATE,LIT,0FFFEh,branch,_numberq4
+_numberq3:	.WORD	TWODROP,RFROM,DROP,ZERO,branch,_numberq4			
+_numberq4:  .WORD   EXIT
 
 
 ; ----------------------------------------------------------------------
