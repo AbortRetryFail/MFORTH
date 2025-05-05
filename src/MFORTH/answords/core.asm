@@ -3302,7 +3302,7 @@ NFATOLFA:   POP     H
 ;   IF DROP 2DROP  R> DROP  0 ELSE
 ;      DROP 2NIP ?DUP
 ;      IF R> ?DNEGATE -2 ELSE
-;         >R ?NEGATE -1 THEN
+;         R> ?NEGATE -1 THEN
 ;   THEN ;
 
             LINKTO(NFATOLFA,0,7,'?',"REBMUN")
