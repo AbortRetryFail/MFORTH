@@ -36,9 +36,9 @@
 
 			LINKTO(LINK_DOUBLE,0,2,'+',"D")
 DPLUS:		SAVEDE
-			LDES	0			; Get the address of d2
+			LDES	2			; Get the address of d2l
 			XCHG				; ..and move that address into HL.
-			LDES	4			; Get the address of d1 into DE.
+			LDES	6			; Get the address of d1h into DE.
 			ANA		A			; Clear the carry flag.
 			LDAX	D			; Get d1ll into A,
 			ADD		M			; ..add d2ll to d1ll,
@@ -48,8 +48,9 @@ DPLUS:		SAVEDE
             LDAX    D           ; Get d1lh into A,
             ADC     M           ; ..add d2lh to d1l,
             STAX    D           ; ..and put the result into d1lh.
-            INX     D           ; Increment to d1hl.
-            INX     H           ; Increment to d2hl.
+			LDES	0			; Get the address of d2h
+			XCHG				; ..and move that address into HL.
+			LDES	4			; Get the address of d1h into DE.
             LDAX    D           ; Get d1hl into A,
             ADC     M           ; ..add d2hl to d1hl,
             STAX    D           ; ..and put the result into d1hl.
@@ -70,9 +71,9 @@ DPLUS:		SAVEDE
 
             LINKTO(DPLUS,0,2,'-',"D")
 DMINUS:     SAVEDE
-            LDES    0           ; Get the address of d2
+            LDES    2           ; Get the address of d2l
             XCHG                ; ..and move that address into HL
-            LDES    4           ; Get the address of d1 into DE.
+            LDES    6           ; Get the address of d1h into DE.
             ANA     A           ; Clear the carry flag.
             LDAX    D           ; Get d1ll into A,
             SUB     M           ; ..subtract d2ll from d1ll,
@@ -82,8 +83,9 @@ DMINUS:     SAVEDE
             LDAX    D           ; Get d1lh into A,
             SBB     M           ; ..subtract d2lh from d1l,
             STAX    D           ; ..and put the result into d1lh.
-            INX     D           ; Increment to d1hl.
-            INX     H           ; Increment to d2hl.
+			LDES	0			; Get the address of d2h
+			XCHG				; ..and move that address into HL.
+			LDES	4			; Get the address of d1h into DE.
             LDAX    D           ; Get d1hl into A,
             SBB     M           ; ..subtract d2hl from d1hl,
             STAX    D           ; ..and put the result into d1hl.
