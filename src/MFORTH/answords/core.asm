@@ -3289,35 +3289,38 @@ NFATOLFA:   POP     H
 
 
 ; ----------------------------------------------------------------------
-; NUMBER? [MFORTH] "number-question" ( c-addr u -- c-addr u 0 | n -1 )
+; NUMBER? [MFORTH] "number-question" ( ca u -- ca u 0 | n -1 | d -2 )
 ;
 ; Attempt to convert a string at c-addr of length u into digits, using
-; the radix in BASE.  The number and 1 is returned if the conversion
-; was successful, 2 is returned if the number is double length,
+; the radix in BASE.  The number and -1 is returned if the conversion
+; was successful, -2 is returned if the number is double length,
 ; otherwise 0 is returned.
 ;
 ; ---
-; : NUMBER? ( ca u -- ca u 0 | n -1 | dn -2 )
-;   SIGN? >R 2DUP 0 0 2SWAP >NUMBER
-;   DUP 0 = IF 2DROP 2NIP ?DUP
-;       IF R> ?DNEGATE -2 ELSE
-;          R> ?NEGATE -1 THEN
-;   1 = SWAP C@ [CHAR] . = AND
-;   IF 2NIP R> ?DNEGATE -2
-;   ELSE 2DROP R> DROP 0
-;   THEN THEN ;
+; : NUMBER? ( ca u -- ca u 0 | n -1 | d -2 )
+;   SIGN? >R 2DUP 0 0 2SWAP >NUMBER DUP
+;   IF 1 = SWAP C@ [CHAR] . = AND
+;     IF 2NIP R> ?DNEGATE -2
+;     ELSE 2DROP R> DROP 0 THEN
+;   ELSE 2DROP 2NIP ?DUP
+;     IF R> ?DNEGATE -2
+;     ELSE R> ?NEGATE -1 THEN
+;   THEN ;
 
             LINKTO(NFATOLFA,0,7,'?',"REBMUN")
 NUMBERQ:    JMP     ENTER
-            .WORD   SIGNQ,TOR,TWODUP,ZERO,ZERO,TWOSWAP,TONUMBER
-			.WORD   DUP,ZERO,EQUALS,zbranch,_numberq2
-			.WORD   TWODROP,TWONIP,QDUP,zbranch,_numberq1
-			.WORD	RFROM,QNEGATE,LIT,0FFFFh,branch,_numberq4
-_numberq2:	.WORD	ONE,EQUALS,SWAP,CFETCH,LIT,02Eh,EQUALS,AND
-			.WORD	zbranch,_numberq3,TWONIP
-_numberq1:  .WORD	RFROM,QDNEGATE,LIT,0FFFEh,branch,_numberq4
-_numberq3:	.WORD	TWODROP,RFROM,DROP,ZERO,branch,_numberq4			
-_numberq4:  .WORD   EXIT
+            .WORD   SIGNQ,TOR,TWODUP,ZERO,ZERO,TWOSWAP,TONUMBER,DUP
+			.WORD   zbranch,_numberqN
+			.WORD   ONE,EQUALS,SWAP,CFETCH,LIT,02Eh,EQUALS,AND
+			.WORD   zbranch,_numberq0
+			.WORD   TWONIP,branch,_numberq2
+_numberqN:  .WORD   TWODROP,TWONIP,QDUP
+            .WORD   zbranch,_numberq1
+			.WORD   branch,_numberq2
+_numberq0:  .WORD   TWODROP,RFROM,DROP,ZERO,branch,_numberqX
+_numberq1:  .WORD   RFROM,QNEGATE,LIT,0FFFFh,branch,_numberqX
+_numberq2:  .WORD   RFROM,QDNEGATE,LIT,0FFFEh;,branch,_numberqX
+_numberqX:  .WORD   EXIT
 
 
 ; ----------------------------------------------------------------------
