@@ -163,6 +163,26 @@ DOCONSTANT: INXCFATOPFA(H)      ; Skip over the CFA so that HL points to PFA.
 
 
 ; ----------------------------------------------------------------------
+; DOTWOCONST for use by high-level 2CONSTANT definition.
+
+DOTWOCONST: SAVEDE				; Leaves HL in DE
+			XCHG				; ..which we need.
+            INXCFATOPFA(H)  	; Skip CFA
+            MOV     E,M     	; Get x2l
+            INX     H
+            MOV     D,M     	; Get x2h
+            INX     H
+            MOV     A,M     	; Get x1l
+            INX     H
+            MOV     H,M     	; Get x1h
+            MOV     L,A     	; Put x1l where it belongs
+            PUSH    H       	; Push x1
+            PUSH    D       	; Push x2
+            RESTOREDE
+            NEXT
+
+
+; ----------------------------------------------------------------------
 ; DOUSER for use by high-level USER variables.
 
 DOUSER:     INXCFATOPFA(H)      ; Skip over the CFA so that HL points to PFA.

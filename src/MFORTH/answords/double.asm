@@ -30,11 +30,46 @@
 ; ======================================================================
 
 ; ----------------------------------------------------------------------
+; 2, [MFORTH] "two-comma" ( x1 x2 -- )
+;
+; Reserve two cells of data space and store x1 and x2 in the cells.
+;
+; ---
+; : 2, HERE 2! 2 CELLS ALLOT ;
+
+			LINKTO(LINK_DOUBLE,0,2,02ch,"2")
+TWOCOMMA:	JMP		ENTER
+			.WORD	HERE,TWOSTORE,LIT,2,CELLS,ALLOT
+			.WORD	EXIT
+
+; ----------------------------------------------------------------------
+; 2CONSTANT [DOUBLE] 8.6.1.0360 "two-constant" ( x1 x2 "<spaces>name" -- )
+;
+; Skip leading space delimiters. Parse name delimited by a space.
+; Create a definition for name with the execution semantics below.
+;
+; name is referred to as a "two-constant".
+;
+; name Execution: ( -- x1 x2 )
+;   Place cell pair x1 x2 on the stack.
+;
+; ---
+; : 2CONSTANT CREATE 2, DOES> 2@ ; 		/ I wish...
+; --
+; : 2CONSTANT CREATE CFASZ NEGATE ALLOT 195
+;		C, DOTWOCONST , 2, ;
+
+			LINKTO(TWOCOMMA,0,9,'T',"NATSNOC2")
+TWOCONSTANT:JMP		ENTER
+			.WORD	CREATE,LIT,-CFASZ,ALLOT,LIT,195,CCOMMA,LIT,DOTWOCONST,COMMA
+			.WORD	TWOCOMMA,EXIT
+
+; ----------------------------------------------------------------------
 ; D+ [DOUBLE] 8.6.1.1040 "d-plus" ( d1|ud1 d2|ud2 -- d3|ud3 )
 ;
 ; Add d1|ud1 and d2|ud2, giving the sum d3|ud3.
 
-			LINKTO(LINK_DOUBLE,0,2,'+',"D")
+			LINKTO(TWOCONSTANT,0,2,'+',"D")
 DPLUS:		SAVEDE
 			LDES	2			; Get the address of d2l
 			XCHG				; ..and move that address into HL.
@@ -153,6 +188,34 @@ _dwostarDONE:PUSH    H          ; Push xd2h to the stack.
 
 
 ; ----------------------------------------------------------------------
+; D2/ [DOUBLE] 8.6.1.1100 "d-two-slash" ( xd1 -- xd2 )
+;
+; xd2 is the result of shifting xd1 one bit toward the least-significant
+; bit, leaving the most-significant bit unchanged.
+
+            LINKTO(DTWOSTAR,0,3,'/',"2D")
+DTWOSLASH:	SUB		A			; Clear accumulator and carry
+			POP		H			; Pop xd1h
+			ADD		H			; Get xd1hh into A
+			JP		_d2slash_p	; If MSB is one...
+			STC					; ...save MSB
+_d2slash_p:	RAR					; Rotate xd1hh right
+			MOV		H,A			; Put xd2hh back
+			MOV		A,L			; Get xd1hl into A
+			RAR					; Rotate xd1hl right
+			MOV		L,A			; Put xd2hl back
+			XTHL				; Swap xd2h for xd1l
+			MOV		A,H			; Get xd1lh into A
+			RAR					; Rotate xd1lh right
+			MOV		H,A			; Put xd2lh back
+			MOV		A,L			; Get xd1ll into A
+			RAR					; Rotate xd1ll right
+			MOV		L,A			; Put xd2ll back
+			XTHL				; Swap xd2l for xd2h
+			PUSH	H			; Push xd2h to the stack.
+			NEXT
+
+; ----------------------------------------------------------------------
 ; DABS [DOUBLE] 8.6.1.1160 "d-abs" ( d -- ud )
 ;
 ; ud is the absolute value of d.
@@ -160,7 +223,7 @@ _dwostarDONE:PUSH    H          ; Push xd2h to the stack.
 ; ---
 ; : DABS ( d -- ud )   DUP ?DNEGATE ;
 
-            LINKTO(DTWOSTAR,0,4,'S',"BAD")
+            LINKTO(DTWOSLASH,0,4,'S',"BAD")
 DABS:       JMP     ENTER
             .WORD   DUP,QDNEGATE,EXIT
 
@@ -177,6 +240,15 @@ DABS:       JMP     ENTER
 DNEGATE:    JMP     ENTER
             .WORD   INVERT,SWAP,INVERT,SWAP,ONE,UMPLUS,EXIT
 
+
+; ----------------------------------------------------------------------
+; M*/ [DOUBLE] 8.6.1.1820 "m-star-slash" ( d1 n1 +n2 -- d2 )
+;
+; Multiply d1 by n1 producing the triple-cell intermediate result t.
+; Divide t by +n2 giving the double-cell quotient d2.
+;
+; ---
+; TODO: Impleemnt M*/
 
 ; ----------------------------------------------------------------------
 ; M+ [DOUBLE] 8.6.1.1830 "m-plus" ( d1|ud1 n -- d2|ud2 )
