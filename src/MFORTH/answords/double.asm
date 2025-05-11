@@ -247,8 +247,30 @@ DNEGATE:    JMP     ENTER
 ; Multiply d1 by n1 producing the triple-cell intermediate result t.
 ; Divide t by +n2 giving the double-cell quotient d2.
 ;
+; This is how gforth does it:
 ; ---
-; TODO: Impleemnt M*/
+; : M*/ >R S>D >R ABS -ROT S>D R> XOR R> SWAP
+;       >R >R DABS ROT TUCK UM* 2SWAP UM* SWAP >R
+;       0 D+ R> -ROT I UM/MOD -ROT R>
+;       UM/MOD -ROT R>
+;       IF
+;         IF 1 0 D+
+;		  THEN DNEGATE
+;       ELSE DROP
+;       THEN ;
+
+			LINKTO(DNEGATE,0,3,'/',"*M")
+MSTARSLASH:	JMP		ENTER
+			.WORD	TOR,STOD,TOR,ABS,DASHROT,STOD,RFROM,XOR,RFROM,SWAP
+			.WORD	TOR,TOR,DABS,ROT,TUCK,UMSTAR,TWOSWAP,UMSTAR,SWAP,TOR
+			.WORD	ZERO,DPLUS,RFROM,DASHROT,I,UMSLASHMOD,DASHROT,RFROM
+			.WORD	UMSLASHMOD,DASHROT,RFROM
+			.WORD	zbranch,_mss_drop
+			.WORD	zbranch,_mss_negate,ONE,ZERO,DPLUS
+_mss_negate:.WORD	DNEGATE,branch,_mss_exit
+_mss_drop:	.WORD	DROP
+_mss_exit:	.WORD	EXIT
+
 
 ; ----------------------------------------------------------------------
 ; M+ [DOUBLE] 8.6.1.1830 "m-plus" ( d1|ud1 n -- d2|ud2 )
@@ -258,7 +280,7 @@ DNEGATE:    JMP     ENTER
 ; ---
 ; : M+ ( d1|ud1 n -- d2|ud2 ) S>D D+ ;
 
-            LINKTO(DNEGATE,0,2,'+',"M")
+            LINKTO(MSTARSLASH,0,2,'+',"M")
 LAST_DOUBLE:
 MPLUS:      JMP		ENTER
 			.WORD	STOD,DPLUS,EXIT
