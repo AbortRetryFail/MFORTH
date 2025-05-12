@@ -79,13 +79,35 @@ TWOCONSTANT:JMP		ENTER
 TWOLITERAL:	JMP		ENTER
 			.WORD	SWAP,LITERAL,LITERAL,EXIT
 
+; ----------------------------------------------------------------------
+; 2VARIABLE [DOUBLE] 8.6.1.0440 "two-variable" ( "<spaces>name" -- )
+;
+; Skip leading space delimiters. Parse name delimited by a space.
+; Create a definition for name with the execution semantics below.
+; Reserve two consecutive cells of data space.
+;
+; name is referred to as a "two-variable".
+;
+; name Execution ( -- a-addr )
+;   a-addr is the address of the first of two consecutive cells
+;   reserved by 2VARIABLE when it defined name. A program is responsible
+;   for initializing the contents of the reserved cells.
+;
+; ---
+; : 2VARIABLE ( "<spaces>name" -- )
+;   CREATE CFASZ NEGATE ALLOT 195 C, DOVARIABLE , 0 0 2, ;
+
+			LINKTO(TWOLITERAL,0,9,'E',"LBAIRAV2")
+TWOVARIABLE:JMP		ENTER
+			.WORD	CREATE,LIT,-CFASZ,ALLOT,LIT,195,CCOMMA,LIT,DOVARIABLE,COMMA
+			.WORD	ZERO,ZERO,TWOCOMMA,EXIT
 
 ; ----------------------------------------------------------------------
 ; D+ [DOUBLE] 8.6.1.1040 "d-plus" ( d1|ud1 d2|ud2 -- d3|ud3 )
 ;
 ; Add d1|ud1 and d2|ud2, giving the sum d3|ud3.
 
-			LINKTO(TWOLITERAL,0,2,'+',"D")
+			LINKTO(TWOVARIABLE,0,2,'+',"D")
 DPLUS:		SAVEDE
 			LDES	2			; Get the address of d2l
 			XCHG				; ..and move that address into HL.
