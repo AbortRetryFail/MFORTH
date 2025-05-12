@@ -65,11 +65,27 @@ TWOCONSTANT:JMP		ENTER
 			.WORD	TWOCOMMA,EXIT
 
 ; ----------------------------------------------------------------------
+; 2LITERAL [DOUBLE] 8.6.1.0390 "two-literal" ( x1 x2 -- )
+;
+; Compilation:
+; ( x1 x2 -- ) Append the run-time semantics below to the current definition
+; Run-time:
+; ( -- x1 x2 ) Place cell pair x1 x2 on the stack.
+;
+; ---
+; : 2LITERAL SWAP POSTPONE LITERAL POSTPONE LITERAL ; IMMEDIATE
+
+			LINKTO(TWOCONSTANT,1,8,'L',"ARETIL2")
+TWOLITERAL:	JMP		ENTER
+			.WORD	SWAP,LITERAL,LITERAL,EXIT
+
+
+; ----------------------------------------------------------------------
 ; D+ [DOUBLE] 8.6.1.1040 "d-plus" ( d1|ud1 d2|ud2 -- d3|ud3 )
 ;
 ; Add d1|ud1 and d2|ud2, giving the sum d3|ud3.
 
-			LINKTO(TWOCONSTANT,0,2,'+',"D")
+			LINKTO(TWOLITERAL,0,2,'+',"D")
 DPLUS:		SAVEDE
 			LDES	2			; Get the address of d2l
 			XCHG				; ..and move that address into HL.
