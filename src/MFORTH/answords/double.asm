@@ -308,6 +308,33 @@ DEQUALS:	JMP		ENTER
 DABS:       JMP     ENTER
             .WORD   DUP,QDNEGATE,EXIT
 
+; ----------------------------------------------------------------------
+; DMAX [DOUBLE] 8.6.1.1210 "d-max" ( d1 d2 -- d3 )
+;
+; d3 is the greater of d1 and d2.
+;
+; ---
+; : DMAX ( d1 d2 -- d3 ) 2OVER 2OVER D< IF 2SWAP THEN 2DROP ;
+
+			LINKTO(DABS,0,4,'X',"AMD")
+DMAX:		JMP		ENTER
+			.WORD	TWOOVER,TWOOVER,DLESSTHAN,zbranch,_dmax_exit
+			.WORD	TWOSWAP
+_dmax_exit:	.WORD	TWODROP,EXIT
+
+; ----------------------------------------------------------------------
+; DMIN [DOUBLE] 8.6.1.1220 "d-min" ( d1 d2 -- d3 )
+;
+; d3 is the lesser of d1 and d2.
+;
+; ---
+; : DMIN (d1 d2 -- d3 ) 2OVER 2OVER D< =0 IF 2SWAP THEN 2DROP ;
+
+			LINKTO(DMAX,0,4,'N',"IMD")
+DMIN:		JMP		ENTER
+			.WORD	TWOOVER,TWOOVER,DLESSTHAN,ZEROEQUALS,zbranch,_dmin_exit
+			.WORD	TWOSWAP
+_dmin_exit:	.WORD	TWODROP,EXIT
 
 ; ----------------------------------------------------------------------
 ; DNEGATE [DOUBLE] 8.6.1.1230 ( d1 -- d2 )
@@ -317,7 +344,7 @@ DABS:       JMP     ENTER
 ; ---
 ; : DNEGATE ( d1 -- d2)   INVERT SWAP INVERT SWAP 1 UM+ ;
 
-            LINKTO(DABS,0,7,'E',"TAGEND")
+            LINKTO(DMIN,0,7,'E',"TAGEND")
 DNEGATE:    JMP     ENTER
             .WORD   INVERT,SWAP,INVERT,SWAP,ONE,UMPLUS,EXIT
 
