@@ -206,12 +206,25 @@ DZEROLESS:  JMP     ENTER
 
 
 ; ----------------------------------------------------------------------
+; D0= [DOUBLE] 8.6.1.1080 "d-zero-equals" ( xd -- flag )
+;
+; flag is true if and only if xd is equal to zero.
+;
+; ---
+; : D0= ( xd -- flag ) 0= SWAP 0= AND ;
+
+		LINKTO(DZEROLESS,0,3,'=',"0D")
+DZEROEQUALS:JMP		ENTER
+			.WORD	ZEROEQUALS,SWAP,ZEROEQUALS,AND,EXIT
+
+
+; ----------------------------------------------------------------------
 ; D2* [DOUBLE] 8.6.1.1090 "d-two-star" ( xd1 -- xd2 )
 ;
 ; xd2 is the result of shifting xd1 one bit toward the most-significant
 ; bit, filling the vacated least-significant bit with zero.
 
-            LINKTO(DZEROLESS,0,3,'*',"2D")
+            LINKTO(DZEROEQUALS,0,3,'*',"2D")
 DTWOSTAR:   POP     H           ; Pop xd1h,
             XTHL                ; ..then swap it for xd1l.
             DAD     H           ; Double xd1l.
@@ -254,6 +267,36 @@ _d2slash_p:	RAR					; Rotate xd1hh right
 			NEXT
 
 ; ----------------------------------------------------------------------
+; D< [DOUBLE] 8.6.1.1110 "d-less-than" ( d1 d2 -- flag )
+;
+; flag is true if and only if d1 is less than d2.
+;
+; ---
+; D< ( d1 d2 -- flag ) SWAP >R 2DUP < IF R> 2DROP 2DROP TRUE
+;    ELSE = IF R> < ELSE R> 2DROP FALSE THEN THEN ;
+
+			LINKTO(DTWOSLASH,0,2,'<',"D")
+DLESSTHAN:	JMP		ENTER
+			.WORD	SWAP,TOR,TWODUP,LESSTHAN,zbranch,_dless_ge
+			.WORD	RFROM,TWODROP,TWODROP,LIT,0FFFFh,branch,_dless_exit
+_dless_ge:	.WORD	EQUALS,zbranch,_dless_g
+			.WORD	RFROM,LESSTHAN,branch,_dless_exit
+_dless_g:	.WORD	RFROM,TWODROP,LIT,0h
+_dless_exit:.WORD	EXIT
+
+; ----------------------------------------------------------------------
+; D= [DOUBLE] 8.6.1.1120 "d-equals" ( xd1 xd2 -- flag )
+;
+; flag is true if and only if xd1 is bit-for-bit the same as xd2.
+;
+; ---
+; D= D- D0= ;
+
+			LINKTO(DLESSTHAN,0,2,'=',"D")
+DEQUALS:	JMP		ENTER
+			.WORD	DMINUS,DZEROEQUALS,EXIT
+
+; ----------------------------------------------------------------------
 ; DABS [DOUBLE] 8.6.1.1160 "d-abs" ( d -- ud )
 ;
 ; ud is the absolute value of d.
@@ -261,7 +304,7 @@ _d2slash_p:	RAR					; Rotate xd1hh right
 ; ---
 ; : DABS ( d -- ud )   DUP ?DNEGATE ;
 
-            LINKTO(DTWOSLASH,0,4,'S',"BAD")
+            LINKTO(DEQUALS,0,4,'S',"BAD")
 DABS:       JMP     ENTER
             .WORD   DUP,QDNEGATE,EXIT
 
