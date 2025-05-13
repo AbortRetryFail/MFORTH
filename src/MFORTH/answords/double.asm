@@ -262,8 +262,7 @@ _d2slash_p:	RAR					; Rotate xd1hh right
 			MOV		A,L			; Get xd1ll into A
 			RAR					; Rotate xd1ll right
 			MOV		L,A			; Put xd2ll back
-			XTHL				; Swap xd2l for xd2h
-			PUSH	H			; Push xd2h to the stack.
+			XTHL				; Swap xd2l for xd2h PUSH	H			; Push xd2h to the stack.
 			NEXT
 
 ; ----------------------------------------------------------------------
@@ -389,6 +388,37 @@ _mss_exit:	.WORD	EXIT
 ; : M+ ( d1|ud1 n -- d2|ud2 ) S>D D+ ;
 
             LINKTO(MSTARSLASH,0,2,'+',"M")
-LAST_DOUBLE:
 MPLUS:      JMP		ENTER
 			.WORD	STOD,DPLUS,EXIT
+
+; ----------------------------------------------------------------------
+; 2ROT [DOUBLE] 8.6.2.0420 "two-rote" ( x1 x2 x3 x4 x5 x6 -- x3 x4 x5 x6 x1 x2 )
+;
+; Rotate the top three cell pairs on the stack
+; bringing cell pair x1 x2 to the top of the stack.
+;
+; ---
+; : 2ROT 2>R 2SWAP 2R> 2SWAP ;
+
+			LINKTO(MPLUS,0,4,'T',"OR2")
+TWOROT:		JMP		ENTER
+			.WORD	TWOTOR,TWOSWAP,TWORFROM,TWOSWAP,EXIT
+
+; ----------------------------------------------------------------------
+; DU< [DOUBLE] 8.6.2.1270 "d-u-less" ( ud1 ud2 -- flag )
+;
+; flag is true if and only if ud1 is less than ud2.
+;
+; ---
+; : DU< ( ud1 ud2 -- flag ) SWAP >R 2DUP U< IF R> 2DROP 2DROP TRUE
+;    ELSE = IF R> U< ELSE R> 2DROP FALSE THEN THEN ;
+
+			LINKTO(TWOROT,0,3,'<',"UD")
+LAST_DOUBLE:
+DULESSTHAN:	JMP		ENTER
+			.WORD	SWAP,TOR,TWODUP,ULESSTHAN,zbranch,_duless_ge
+			.WORD	RFROM,TWODROP,TWODROP,LIT,0FFFFh,branch,_duless_x
+_duless_ge:	.WORD	EQUALS,zbranch,_duless_g
+			.WORD	RFROM,ULESSTHAN,branch,_duless_x
+_duless_g:	.WORD	RFROM,TWODROP,LIT,0h
+_duless_x:	.WORD	EXIT
