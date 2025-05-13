@@ -262,7 +262,8 @@ _d2slash_p:	RAR					; Rotate xd1hh right
 			MOV		A,L			; Get xd1ll into A
 			RAR					; Rotate xd1ll right
 			MOV		L,A			; Put xd2ll back
-			XTHL				; Swap xd2l for xd2h PUSH	H			; Push xd2h to the stack.
+			XTHL				; Swap xd2l for xd2h
+			PUSH	H			; Push xd2h to the stack.
 			NEXT
 
 ; ----------------------------------------------------------------------
