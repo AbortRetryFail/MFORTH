@@ -65,6 +65,18 @@ _zneqDONE:  PUSH    H           ; Push the flag to the stack.
 
 
 ; ----------------------------------------------------------------------
+; 0> [CORE EXT] 6.2.0280 "zero-greater" ( x -- flag )
+;
+; flag is true if and only if n is greater than zero.
+;
+; ---
+; : 0> NEGATE 0< ;
+
+			LINKTO(ZERONOTEQUALS,0,2,'>',"0")
+ZEROGREATER:JMP		ENTER
+			.WORD	NEGATE,ZEROLESS,EXIT
+
+; ----------------------------------------------------------------------
 ; 2>R [CORE EXT] 6.2.0340 "two-to-r"
 ;
 ; Interpretation:
@@ -74,7 +86,7 @@ _zneqDONE:  PUSH    H           ; Push the flag to the stack.
 ;   Transfer cell pair x1 x2 to the return stack.  Semantically equivalent
 ;   to SWAP >R >R.
 
-            LINKTO(ZERONOTEQUALS,0,3,'R',">2")
+            LINKTO(ZEROGREATER,0,3,'R',">2")
 TWOTOR:     POP     H           ; Pop x2 from the stack,
             XTHL                ; ..and then swap x1 with x2.;
             RSPUSH(H,L)         ; Push x1 to the return stack.

@@ -88,7 +88,6 @@ _cmoveDONE: RESTOREBC
 ; character-by-character from higher addresses to lower addresses.
 
             LINKTO(CMOVE,0,6,'>',"EVOMC")
-LAST_STRING:
 CMOVEUP:    SAVEDE
             SAVEBC
             POP     B           ; Pop u into BC.
@@ -110,3 +109,46 @@ _cmoveup1:  MOV     A,B         ; We're done if B
 _cmoveupDONE:RESTOREBC
             RESTOREDE
             NEXT
+
+; ----------------------------------------------------------------------
+; COMPARE [STRING] 17.6.1.0935 ( c-addr1 u1 c-addr2 u2 -- n )
+;
+; Compare the string specified by c-addr1 u1 to the string specified by
+; c-addr2 u2. The strings are compared, beginning at the given addresses,
+; character by character, up to the length of the shorter string or until a
+; difference is found. If the two strings are identical, n is zero. If the
+; two strings are identical up to the length of the shorter string, n is
+; minus-one (-1) if u1 is less than u2 and one (1) otherwise. If the two
+; strings are not identical up to the length of the shorter string, n is
+; minus-one (-1) if the first non-matching character in the string specified
+; by c-addr1 u1 has a lesser numeric value than the corresponding character in
+; the string specified by c-addr2 u2 and one (1) otherwise.
+;
+; ---
+; : COMPARE ( c-addr1 u1 c-addr2 u2 -- n )
+;   ROT 2DUP 2>R SWAP - -ROT 2R>
+;   MIN 0 SWAP 0
+;   DO DROP OVER I + @ OVER I + @ -
+;     DUP IF LEAVE THEN LOOP
+;   -ROT 2DROP DUP 0= IF
+;     DUP 0< IF DROP -1 EXIT THEN
+;     DUP 0> IF DROP 1 EXIT THEN
+;     DROP EXIT THEN ( 0 )
+;   NIP 0< IF -1 ELSE 1 THEN ;
+			LINKTO(CMOVEUP,0,7,'E',"RAPMOC")
+LAST_STRING:
+COMPARE:	JMP		ENTER
+			.WORD	ROT,TWODUP,TWOTOR,SWAP,MINUS,DASHROT,TWORFROM
+			.WORD	MIN,ZERO,SWAP,ZERO,pdo
+_compare1:	.WORD	DROP,OVER,I,PLUS,FETCH,OVER,I,PLUS,FETCH,MINUS
+			.WORD	DUP,zbranch,_compare2,UNLOOP,branch,_compare3
+_compare2:	.WORD	ploop,_compare1
+_compare3:	.WORD	DASHROT,TWODROP,DUP,ZEROEQUALS,zbranch,_compare6
+			.WORD	DUP,ZEROLESS,zbranch,_compare4
+			.WORD	DROP,LIT,0FFFFh,EXIT
+_compare4:	.WORD	DUP,ZEROGREATER,zbranch,_compare5
+			.WORD	DROP,LIT,0001h,EXIT
+_compare5:	.WORD	DROP,EXIT
+_compare6:	.WORD	NIP,ZEROLESS,zbranch,_compare7
+			.WORD	LIT,0FFFFh,EXIT
+_compare7:	.WORD	LIT,0001h,EXIT
