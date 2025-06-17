@@ -6,3 +6,6 @@ phash.asm
 *.suo
 *.vspscc
 *.vssscc
+src/MFORTH/*.BX
+src/MFORTH/*.LST
+src/MFORTH/*.SYM
