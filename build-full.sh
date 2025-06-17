@@ -9,6 +9,7 @@ SRCDIR=$(pwd)/src/MFORTH
 BINDIR=../../bin
 TOOLSDIR=../../tools
 
+pushd "${SRCDIR}" > /dev/null
 # TASM seems dumb and tries to look for TASM85.TAB in the current directory
 ln -s "${BINDIR}"/TASM85.TAB .
 
@@ -47,3 +48,4 @@ wine "${BINDIR}"/TASM.EXE -85 -s -b -f00 \
 
 # tidy up
 rm ./TASM85.TAB
+popd > /dev/null
