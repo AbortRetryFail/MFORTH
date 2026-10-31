@@ -124,31 +124,37 @@ _cmoveupDONE:RESTOREBC
 ; by c-addr1 u1 has a lesser numeric value than the corresponding character in
 ; the string specified by c-addr2 u2 and one (1) otherwise.
 ;
+; From Jim Peterson's reference implementation
+; https://forth-standard.org/standard/string/COMPARE#contribution-398
 ; ---
-; : COMPARE ( c-addr1 u1 c-addr2 u2 -- n )
-;   ROT 2DUP 2>R SWAP - -ROT 2R>
-;   MIN 0 SWAP 0
-;   DO DROP OVER I + @ OVER I + @ -
-;     DUP IF LEAVE THEN LOOP
-;   -ROT 2DROP DUP 0= IF
-;     DUP 0< IF DROP -1 EXIT THEN
-;     DUP 0> IF DROP 1 EXIT THEN
-;     DROP EXIT THEN ( 0 )
-;   NIP 0< IF -1 ELSE 1 THEN ;
+; : _cmp ( x1 x2 -- -1|0|1 ) - DUP IF 0< 1 OR THEN ;
+
+;: COMPARE ( addr1 u1 addr2 u2 -- -1|0|1 )
+;  ROT 2DUP SWAP _cmp >R
+;  MIN ?DUP IF
+;    0 DO
+;      COUNT >R SWAP COUNT R> _cmp ?DUP IF
+;        NIP NIP UNLOOP R> DROP EXIT
+;      THEN
+;      SWAP
+;    LOOP
+;  THEN
+;  2DROP
+;  R> ;
+
+_cmp:		JMP 	ENTER
+			.WORD	MINUS,DUP,zbranch,_cmpexit,ZEROLESS,ONE,OR
+_cmpexit:	.WORD	EXIT
+
 			LINKTO(CMOVEUP,0,7,'E',"RAPMOC")
 LAST_STRING:
 COMPARE:	JMP		ENTER
-			.WORD	ROT,TWODUP,TWOTOR,SWAP,MINUS,DASHROT,TWORFROM
-			.WORD	MIN,ZERO,SWAP,ZERO,pdo
-_compare1:	.WORD	DROP,OVER,I,PLUS,FETCH,OVER,I,PLUS,FETCH,MINUS
-			.WORD	DUP,zbranch,_compare2,UNLOOP,branch,_compare3
-_compare2:	.WORD	ploop,_compare1
-_compare3:	.WORD	DASHROT,TWODROP,DUP,ZEROEQUALS,zbranch,_compare6
-			.WORD	DUP,ZEROLESS,zbranch,_compare4
-			.WORD	DROP,LIT,0FFFFh,EXIT
-_compare4:	.WORD	DUP,ZEROGREATER,zbranch,_compare5
-			.WORD	DROP,LIT,0001h,EXIT
-_compare5:	.WORD	DROP,EXIT
-_compare6:	.WORD	NIP,ZEROLESS,zbranch,_compare7
-			.WORD	LIT,0FFFFh,EXIT
-_compare7:	.WORD	LIT,0001h,EXIT
+			.WORD	ROT,TWODUP,SWAP,_cmp,TOR
+			.WORD	MIN,QDUP,zbranch,_compexit
+			.WORD	ZERO,pdo
+_comploop:	.WORD	COUNT,TOR,SWAP,COUNT,RFROM,_cmp,QDUP,zbranch,_comp1
+			.WORD	NIP,NIP,UNLOOP,RFROM,DROP,EXIT
+_comp1:		.WORD	SWAP
+			.WORD	ploop,_comploop
+_compexit:	.WORD	TWODROP
+			.WORD	RFROM,EXIT
